@@ -75,11 +75,23 @@ DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::GetDevice() 
   return viskores::cont::DeviceAdapterTagKokkos{};
 }
 
+bool hipUnifiedMemoryAvailable()
+{
+#if defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
+  return true;
+#else
+  return false;
+#endif
+}
+
 viskores::cont::internal::BufferInfo
 DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyHostToDevice(
   const viskores::cont::internal::BufferInfo& src) const
 {
   VISKORES_ASSERT(src.GetDevice() == viskores::cont::DeviceAdapterTagUndefined{});
+
+  if (hipUnifiedMemoryAvailable())
+    return viskores::cont::internal::BufferInfo(src, viskores::cont::DeviceAdapterTagKokkos{});
 
   // Make a new buffer
   viskores::cont::internal::BufferInfo dest = this->Allocate(src.GetSize());
@@ -92,6 +104,10 @@ void DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyHos
   const viskores::cont::internal::BufferInfo& src,
   const viskores::cont::internal::BufferInfo& dest) const
 {
+
+  if (hipUnifiedMemoryAvailable() && src.GetPointer() == dest.GetPointer())
+    return;
+
   viskores::BufferSizeType size = viskores::Min(src.GetSize(), dest.GetSize());
 
   VISKORES_LOG_F(viskores::cont::LogLevel::MemTransfer,
@@ -103,6 +119,7 @@ void DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyHos
     static_cast<viskores::UInt8*>(src.GetPointer()), static_cast<std::size_t>(size));
   viskores::cont::kokkos::internal::KokkosViewExec<viskores::UInt8> destView(
     static_cast<viskores::UInt8*>(dest.GetPointer()), static_cast<std::size_t>(size));
+
   Kokkos::deep_copy(
     viskores::cont::kokkos::internal::GetExecutionSpaceInstance(), destView, srcView);
 }
@@ -115,6 +132,12 @@ DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyDeviceTo
 
   // Make a new buffer
   viskores::cont::internal::BufferInfo dest;
+  if (hipUnifiedMemoryAvailable())
+  {
+    dest = viskores::cont::internal::BufferInfo(src, viskores::cont::DeviceAdapterTagUndefined{});
+    viskores::cont::kokkos::internal::GetExecutionSpaceInstance().fence();
+    return dest;
+  }
   dest = viskores::cont::internal::AllocateOnHost(src.GetSize());
   this->CopyDeviceToHost(src, dest);
 
@@ -125,6 +148,9 @@ void DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyDev
   const viskores::cont::internal::BufferInfo& src,
   const viskores::cont::internal::BufferInfo& dest) const
 {
+  if (hipUnifiedMemoryAvailable() && src.GetPointer() == dest.GetPointer())
+    return;
+
   viskores::BufferSizeType size = viskores::Min(src.GetSize(), dest.GetSize());
 
   VISKORES_LOG_F(viskores::cont::LogLevel::MemTransfer,
@@ -136,8 +162,10 @@ void DeviceAdapterMemoryManager<viskores::cont::DeviceAdapterTagKokkos>::CopyDev
     static_cast<viskores::UInt8*>(src.GetPointer()), static_cast<std::size_t>(size));
   viskores::cont::kokkos::internal::KokkosViewCont<viskores::UInt8> destView(
     static_cast<viskores::UInt8*>(dest.GetPointer()), static_cast<std::size_t>(size));
+
   Kokkos::deep_copy(
     viskores::cont::kokkos::internal::GetExecutionSpaceInstance(), destView, srcView);
+
   viskores::cont::kokkos::internal::GetExecutionSpaceInstance().fence();
 }
 
