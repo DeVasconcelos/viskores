@@ -68,6 +68,16 @@ void Free(void* ptr)
   }
 }
 
+bool IsUnifiedMemoryPointer(const void* ptr)
+{
+#if defined(KOKKOS_ENABLE_CUDA_UVM) || defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY) || \
+  defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
+  return ptr != nullptr;
+#else
+  return false;
+#endif
+}
+
 void* Reallocate(void* ptr, std::size_t newSize)
 {
   try
