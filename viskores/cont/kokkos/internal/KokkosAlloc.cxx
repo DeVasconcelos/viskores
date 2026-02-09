@@ -44,7 +44,11 @@ void* Allocate(std::size_t size)
   }
   try
   {
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+    return Kokkos::kokkos_malloc<Kokkos::SharedSpace>(size);
+#else
     return Kokkos::kokkos_malloc<ExecutionSpace::memory_space>(size);
+#endif
   }
   catch (...) // the type of error thrown is not well documented
   {
@@ -59,7 +63,11 @@ void Free(void* ptr)
   if (Kokkos::is_initialized())
   {
     GetExecutionSpaceInstance().fence();
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+    Kokkos::kokkos_free<Kokkos::SharedSpace>(ptr);
+#else
     Kokkos::kokkos_free<ExecutionSpace::memory_space>(ptr);
+#endif
   }
   else
   {
@@ -70,8 +78,11 @@ void Free(void* ptr)
 
 bool IsUnifiedMemoryPointer(const void* ptr)
 {
-#if defined(KOKKOS_ENABLE_CUDA_UVM) || defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY) || \
-  defined(KOKKOS_IMPL_HIP_UNIFIED_MEMORY)
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+  // There seems to be no direct way to query whether a pointer is a unified memory
+  // pointer in Kokkos. Since we use SharedSpace for (de)allocation and Kokkos views,
+  // if unified memory is available, i.e., if KOKKOS_HAS_SHARED_SPACE is true, we
+  // can assume non-null pointer are unified memory pointers.
   return ptr != nullptr;
 #else
   return false;

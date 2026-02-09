@@ -38,9 +38,17 @@ using ExecutionSpace = Kokkos::DefaultExecutionSpace;
 
 VISKORES_CONT_EXPORT const ExecutionSpace& GetExecutionSpaceInstance();
 
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+template <typename ValueType>
+using KokkosViewCont = Kokkos::View<ValueType*,
+                                    Kokkos::LayoutRight,
+                                    Kokkos::SharedSpace,
+                                    Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+#else
 template <typename ValueType>
 using KokkosViewCont = Kokkos::
   View<ValueType*, Kokkos::LayoutRight, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+#endif
 
 template <typename ValueType>
 using KokkosViewExec =
