@@ -52,8 +52,11 @@ void DeviceAdapterAlgorithm<viskores::cont::DeviceAdapterTagKokkos>::CheckForErr
   static thread_local char hostBuffer[ErrorMessageMaxLength] = "";
 
   auto deviceView = GetErrorMessageViewInstance();
-
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+  if (Kokkos::SpaceAccessibility<Kokkos::SharedSpace, decltype(deviceView)::memory_space>::accessible)
+#else
   if (Kokkos::SpaceAccessibility<Kokkos::HostSpace, decltype(deviceView)::memory_space>::accessible)
+#endif
   {
     viskores::cont::kokkos::internal::GetExecutionSpaceInstance().fence();
     if (deviceView(0) != '\0')

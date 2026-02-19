@@ -79,10 +79,17 @@ void Free(void* ptr)
 bool IsUnifiedMemoryPointer(const void* ptr)
 {
 #if defined(KOKKOS_HAS_SHARED_SPACE)
-  // There seems to be no direct way to query whether a pointer is a unified memory
-  // pointer in Kokkos. Since we use SharedSpace for (de)allocation and Kokkos views,
-  // if unified memory is available, i.e., if KOKKOS_HAS_SHARED_SPACE is true, we
-  // can assume non-null pointer are unified memory pointers.
+  // PROBLEM: There seems to be no way to query whether a pointer is a unified memory
+  // pointer in Kokkos. It is not enough to assume that a non-null pointer is a unified
+  // memory pointer, if KOKKOS_HAS_SHARED_SPACE is defined: While we use SharedSpace for
+  // (de)allocations on the device, we do not (necessarily) use it for allocations on the
+  // host (making these host allocations inaccessible to the device and thus leading to
+  // illegal memory access runtime errors).
+  // WORKAROUND: It would be possible (and it does resolve the illegal memory access issues)
+  // to use device-specific methods, like cudaPointerGetAttributes or hipPointerGetAttributes,
+  // to query whether a pointer is a unified memory pointer here (similar to how it is done
+  // in viskores/cont/cuda/internal/CudaAllocator.cu:IsManagedPointer). But at this point, it
+  // is probably best to just use the CUDA (or possibly a future HIP) device adapter.
   return ptr != nullptr;
 #else
   return false;
@@ -93,7 +100,11 @@ void* Reallocate(void* ptr, std::size_t newSize)
 {
   try
   {
+#if defined(KOKKOS_HAS_SHARED_SPACE)
+    return Kokkos::kokkos_realloc<Kokkos::SharedSpace>(ptr, newSize);
+#else
     return Kokkos::kokkos_realloc<ExecutionSpace::memory_space>(ptr, newSize);
+#endif
   }
   catch (...)
   {
@@ -102,7 +113,6 @@ void* Reallocate(void* ptr, std::size_t newSize)
     throw viskores::cont::ErrorBadAllocation(err.str());
   }
 }
-
 }
 }
 }

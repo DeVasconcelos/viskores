@@ -44,15 +44,21 @@ using KokkosViewCont = Kokkos::View<ValueType*,
                                     Kokkos::LayoutRight,
                                     Kokkos::SharedSpace,
                                     Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
+template <typename ValueType>
+using KokkosViewExec = Kokkos::View<ValueType*, Kokkos::LayoutRight, Kokkos::SharedSpace>;
+
 #else
 template <typename ValueType>
 using KokkosViewCont = Kokkos::
   View<ValueType*, Kokkos::LayoutRight, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-#endif
 
 template <typename ValueType>
 using KokkosViewExec =
   decltype(Kokkos::create_mirror(ExecutionSpace{}, KokkosViewCont<ValueType>{}));
+#endif
+
+
 
 template <typename ValueType>
 using KokkosViewConstCont = typename KokkosViewCont<ValueType>::const_type;
