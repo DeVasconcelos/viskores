@@ -261,7 +261,7 @@ public:
       : MinScalar(minScalar)
     {
       Normalize = true;
-      if (minScalar >= maxScalar)
+      if (minScalar >= maxScalar || maxScalar - minScalar < 1e-6f) // changed this
       {
         // support the scalar renderer
         this->Normalize = false;
