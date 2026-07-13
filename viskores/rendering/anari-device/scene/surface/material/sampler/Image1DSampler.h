@@ -47,6 +47,8 @@ private:
   helium::WrapMode m_wrapMode;
 
   viskores::cont::ArrayHandle<viskores::Vec4f_32> m_colorMap;
+
+  viskores::cont::ArrayHandle<viskores::Float32> applyInputTransform(const viskores::cont::ArrayHandle<viskores::Float32>& input) const;
 };
 
 } // namespace viskores_device

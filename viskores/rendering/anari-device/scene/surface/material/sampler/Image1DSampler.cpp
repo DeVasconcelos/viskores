@@ -11,9 +11,12 @@
 #include "Image1DSampler.h"
 // Viskores
 #include <viskores/TypeTraits.h>
+#include <viskores/cont/Algorithm.h>
 #include <viskores/cont/ArrayCopy.h>
 #include <viskores/cont/ArrayExtractComponent.h>
 #include <viskores/cont/ArrayHandleConstant.h>
+#include <viskores/cont/Invoker.h>
+#include <viskores/worklet/WorkletMapField.h>
 // std
 #include <limits>
 
@@ -136,6 +139,27 @@ bool captureColorTable(const viskores::cont::UnknownArrayHandle& colorArray,
   }
 }
 
+class ApplyInputTransform : public viskores::worklet::WorkletMapField
+{
+private:
+  viskores::Float32 Scale;
+  viskores::Float32 Offset;
+
+public:
+  using ControlSignature = void(FieldIn, FieldOut);
+  using ExecutionSignature = void(_1, _2);
+
+  VISKORES_CONT
+  ApplyInputTransform(viskores::Float32 scale, viskores::Float32 offset)
+    : Scale(scale)
+    , Offset(offset)
+  {
+  }
+
+  VISKORES_EXEC
+  void operator()(viskores::Float32 in, viskores::Float32& out) const { out = in * Scale + Offset; }
+};
+
 } // anonymous namespace
 namespace viskores_device
 {
@@ -204,6 +228,8 @@ bool Image1DSampler::getColors(const viskores::cont::DataSet& data,
 
   viskores::cont::Field attribField = data.GetField(this->inAttribute());
   viskores::cont::UnknownArrayHandle attribArray = attribField.GetData();
+  viskores::cont::ArrayHandle<viskores::Float32> concreteAttribArray;
+
   if (!attribArray.CanConvert<viskores::cont::ArrayHandle<viskores::Float32>>())
   {
     if (!attribArray.IsBaseComponentType<viskores::Float32>())
@@ -214,14 +240,34 @@ bool Image1DSampler::getColors(const viskores::cont::DataSet& data,
     }
     this->reportMessage(ANARI_SEVERITY_PERFORMANCE_WARNING,
                         "todo: handle vector attributes more efficiently");
-    viskores::cont::UnknownArrayHandle newArray;
-    viskores::cont::ArrayCopy(attribArray.ExtractComponent<viskores::Float32>(0), newArray);
-    attribArray = newArray;
+    viskores::cont::ArrayCopy(attribArray.ExtractComponent<viskores::Float32>(0),
+                              concreteAttribArray);
+  }
+  else
+  {
+    concreteAttribArray =
+      attribArray.AsArrayHandle<viskores::cont::ArrayHandle<viskores::Float32>>();
   }
 
-  field = viskores::cont::Field{ attribField.GetName(), attribField.GetAssociation(), attribArray };
+  field = viskores::cont::Field{ attribField.GetName(),
+                                 attribField.GetAssociation(),
+                                 this->applyInputTransform(concreteAttribArray) };
   colorMap = this->m_colorMap;
   return true;
 }
+
+viskores::cont::ArrayHandle<viskores::Float32> Image1DSampler::applyInputTransform(
+  const viskores::cont::ArrayHandle<viskores::Float32>& input) const
+{
+  viskores::cont::ArrayHandle<viskores::Float32> result;
+
+  ApplyInputTransform worklet{ this->m_inTransform[0][0], this->m_inOffset[0] };
+
+  viskores::cont::Invoker invoke;
+  invoke(worklet, input, result);
+
+  return result;
+}
+
 
 } // namespace viskores_device

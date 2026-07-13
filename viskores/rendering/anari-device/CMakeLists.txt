@@ -33,7 +33,6 @@ set (sources
   scene/surface/geometry/Geometry.cpp
   scene/surface/material/Material.cpp
   scene/surface/material/MatteMaterial.cpp
-  scene/surface/material/sampler/Image1DSampler.cpp
   scene/surface/material/sampler/Sampler.cpp
   scene/volume/Volume.cpp
   scene/volume/spatial_field/SpatialField.cpp
@@ -47,6 +46,7 @@ set(device_sources
   scene/surface/geometry/Quad.cpp
   scene/surface/geometry/Sphere.cpp
   scene/surface/geometry/Triangle.cpp
+  scene/surface/material/sampler/Image1DSampler.cpp
   scene/volume/TransferFunction1D.cpp
   )
 
