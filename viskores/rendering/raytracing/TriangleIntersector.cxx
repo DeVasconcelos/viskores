@@ -257,11 +257,13 @@ public:
 
   public:
     VISKORES_CONT
-    LerpScalar(const viskores::Float32& minScalar, const viskores::Float32& maxScalar)
+    LerpScalar(const viskores::Float32& minScalar,
+               const viskores::Float32& maxScalar,
+               const viskores::Float32& minDifference = 1e-6f)
       : MinScalar(minScalar)
     {
       Normalize = true;
-      if (minScalar >= maxScalar || maxScalar - minScalar < 1e-6f) // changed this
+      if (minScalar >= maxScalar || maxScalar - minScalar < minDifference)
       {
         // support the scalar renderer
         this->Normalize = false;
@@ -317,11 +319,13 @@ public:
 
   public:
     VISKORES_CONT
-    NodalScalar(const viskores::Float32& minScalar, const viskores::Float32& maxScalar)
+    NodalScalar(const viskores::Float32& minScalar,
+                const viskores::Float32& maxScalar,
+                const viskores::Float32& minDifference = 1e-6f)
       : MinScalar(minScalar)
     {
       Normalize = true;
-      if (minScalar >= maxScalar)
+      if (minScalar >= maxScalar || maxScalar - minScalar < minDifference)
       {
         // support the scalar renderer
         Normalize = false;
