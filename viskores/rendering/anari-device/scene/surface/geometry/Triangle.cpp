@@ -132,7 +132,7 @@ void Triangle::render(viskores::rendering::Canvas& canvas,
   viskores::cont::CoordinateSystem coords = data.GetCoordinateSystem();
 
   viskores::Bounds shapeBounds;
-  viskores::Range scalarRange = field.GetRange().ReadPortal().Get(0);
+  viskores::Range scalarRange = this->getRangeForTracer(field);
 
   triExtractor.ExtractCells(data.GetCellSet());
 

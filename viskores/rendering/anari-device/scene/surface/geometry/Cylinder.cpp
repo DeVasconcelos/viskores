@@ -187,7 +187,7 @@ void Cylinder::render(viskores::rendering::Canvas& canvas,
   viskores::rendering::raytracing::RayTracer tracer;
 
   viskores::Bounds shapeBounds;
-  viskores::Range scalarRange = field.GetRange().ReadPortal().Get(0);
+  viskores::Range scalarRange = this->getRangeForTracer(field);
 
   if (this->m_cylinderIntersector)
   {

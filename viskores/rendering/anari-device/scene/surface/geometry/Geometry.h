@@ -16,6 +16,7 @@
 
 #include <viskores/cont/DataSet.h>
 #include <viskores/rendering/Canvas.h>
+#include <viskores/Range.h>
 
 #include <map>
 
@@ -78,6 +79,11 @@ struct Geometry : public Object
 protected:
   viskores::cont::DataSet m_dataSet;
   FieldArrayParameters m_primitiveAttributes;
+  
+  bool m_useValueRange{false};
+  viskores::Range m_valueRange;
+
+   viskores::Range getRangeForTracer(const viskores::cont::Field& field) const;
 };
 
 struct UnknownGeometry : public Geometry
