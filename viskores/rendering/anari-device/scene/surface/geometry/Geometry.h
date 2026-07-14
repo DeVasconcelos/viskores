@@ -80,8 +80,8 @@ protected:
   viskores::cont::DataSet m_dataSet;
   FieldArrayParameters m_primitiveAttributes;
   
-  bool m_useValueRange{false};
-  viskores::Range m_valueRange;
+  bool m_useCustomRangeForTracer{false};
+  viskores::Range m_customRangeForTracer;
 
    viskores::Range getRangeForTracer(const viskores::cont::Field& field) const;
 };

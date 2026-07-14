@@ -50,11 +50,11 @@ Geometry* Geometry::createInstance(std::string_view subtype, ViskoresDeviceGloba
 
 void Geometry::commitParameters()
 {
-  this->m_useValueRange = this->getParam("useValueRange", false);
+  this->m_useCustomRangeForTracer = this->getParam("useCustomRangeForTracer", false);
 
   box1 range = { 0.f, 1.f };
-  this->getParam("valueRange", ANARI_FLOAT32_BOX1, &range);
-  this->m_valueRange = { range.lower, range.upper };
+  this->getParam("customRangeForTracer", ANARI_FLOAT32_BOX1, &range);
+  this->m_customRangeForTracer = { range.lower, range.upper };
 
   this->m_primitiveAttributes.commitParameters();
 }
@@ -115,8 +115,8 @@ const helium::ChangeObserverPtr<Array1D>& Geometry::FieldArrayParameters::getPar
 
 viskores::Range Geometry::getRangeForTracer(const viskores::cont::Field& field) const
 {
-  if (this->m_useValueRange)
-    return this->m_valueRange;
+  if (this->m_useCustomRangeForTracer)
+    return this->m_customRangeForTracer;
 
   return field.GetRange().ReadPortal().Get(0);
 }
