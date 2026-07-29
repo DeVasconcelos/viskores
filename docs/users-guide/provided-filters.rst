@@ -14,7 +14,7 @@ More can be found in the namespaces under ``viskores::filter`` (and likewise the
    SetActiveField, GetActiveField, SetUseCoordinateSystemAsField, GetUseCoordinateSystemAsField, SetActiveCoordinateSystem, GetActiveCoordinateSystem, SetOutputFieldName, GetOutputFieldName, Execute
 
 ..
-   % These commands are used in the bottom of a description environment used for methods on filters. All should provide whichever ones make the most sense. All these commands take an optional argument that has a list of methods to supress (i.e. _not_ document) for those that are not relevant to the filter or should be documented in a different way.
+   % These commands are used in the bottom of a description environment used for methods on filters. All should provide whichever ones make the most sense. All these commands take an optional argument that has a list of methods to suppress (i.e. _not_ document) for those that are not relevant to the filter or should be documented in a different way.
 
    % This has the base methods available on all filters.
    \NewDocumentCommand{\commonfiltermethods}{O{}}{
@@ -292,7 +292,7 @@ Density Estimation
 .. index::
    double: density; filter
 
-Density estimation takes a collection of samples and estimates the density of the samples in each part of the domain (or estimate the probabilty that a sample would be at a location in the domain).
+Density estimation takes a collection of samples and estimates the density of the samples in each part of the domain (or estimate the probability that a sample would be at a location in the domain).
 The domain of samples could be a physical space, such as with particle density, or in an abstract place, such as with a histogram.
 The ``viskores::filter::density_estimate`` module contains filters that estimate density in a variety of ways.
 
@@ -313,7 +313,7 @@ The :class:`viskores::filter::density_estimate::Histogram` filter computes a his
 Particle Density
 ------------------------------
 
-|Viskores| provides multiple filters to take as input a collection of points and build a regular mesh containing an estimate of the density of particles in that space. These filters inhert from :class:`viskores::filter::density_estimate::ParticleDensityBase`.
+|Viskores| provides multiple filters to take as input a collection of points and build a regular mesh containing an estimate of the density of particles in that space. These filters inherit from :class:`viskores::filter::density_estimate::ParticleDensityBase`.
 
 .. doxygenclass:: viskores::filter::density_estimate::ParticleDensityBase
    :members:
@@ -346,7 +346,7 @@ The filter then sums up all the contributions of particles for each bin in the g
 Statistics
 ------------------------------
 
-Simple descriptive statics for data in field arrays can be computed with :class:`viskores::filter::density_estimate::Statistics`.
+Simple descriptive statistics for data in field arrays can be computed with :class:`viskores::filter::density_estimate::Statistics`.
 
 .. doxygenclass:: viskores::filter::density_estimate::Statistics
    :members:
@@ -500,7 +500,7 @@ Composite Vectors
    double: filter; composite vectors
 
 The :class:`viskores::filter::field_transform::CompositeVectors` filter allows you to group multiple scalar fields into a single vector field.
-This is convenient when importing data from a souce that stores vector components in separate arrays.
+This is convenient when importing data from a source that stores vector components in separate arrays.
 
 .. doxygenclass:: viskores::filter::field_transform::CompositeVectors
    :members:
@@ -626,7 +626,7 @@ Warp
    double: warp; filter
 
 The :class:`viskores::filter::field_transform::Warp` filter modifies points in a :class:`viskores::cont::DataSet` by moving points along scaled direction vectors.
-By default, the :class:`viskores::filter::field_transform::Warp` filter modifies the coordinate system and writes its results to the coordiante system.
+By default, the :class:`viskores::filter::field_transform::Warp` filter modifies the coordinate system and writes its results to the coordinate system.
 A vector field can be selected as directions, or a constant direction can be specified.
 A constant direction is particularly useful for generating a carpet plot.
 A scalar field can be selected to scale the displacement, and a constant scale factor adjustment can be specified.
@@ -685,7 +685,7 @@ Pathlines
 Individual pathlines are computed from an initial point location (seed) using a numerical method to integrate the point through the flow field.
 
 This filter requires two data sets as input, which represent the data for two sequential time steps.
-The "Previous" data set, which marks the data at the earlier time step, is passed into the filter throught the standard ``Execute`` method.
+The "Previous" data set, which marks the data at the earlier time step, is passed into the filter through the standard ``Execute`` method.
 The "Next" data set, which marks the data at the later time step, is specified as state to the filter using methods.
 
 .. doxygenclass:: viskores::filter::flow::Pathline
@@ -764,6 +764,41 @@ It does this by throwing away any existing cell set and replacing it with a coll
 It is also useful to treat data as a collection of sample points rather than an interconnected mesh.
 
 .. doxygenclass:: viskores::filter::geometry_refinement::ConvertToPointCloud
+   :members:
+
+Extrusion
+------------------------------
+
+.. index::
+   double: extrusion; filter
+   single: linear extrusion
+   single: rotational extrusion
+
+Extrusion filters create a volume by sweeping a triangulated profile over a sequence of generated profile planes and connecting corresponding triangles with wedge cells.
+The filters operate on triangles, but non-triangular input can be converted by enabling input triangulation.
+Point and cell fields are replicated from the input profile onto the generated points and wedge cells.
+
+The :class:`viskores::filter::geometry_refinement::ExtrusionLinear` filter translates the profile along a direction.
+The sweep is controlled by the direction, distance, and number of planes.
+A linear extrusion is always open.
+
+The :class:`viskores::filter::geometry_refinement::ExtrusionRotational` filter revolves the profile around an axis.
+The sweep is controlled by the axis, center, sweep angle, number of planes, and whether the sweep is closed.
+Full ``2*pi`` rotational sweeps are closed by default, and partial sweeps are open by default.
+The filter allows profile points on the rotation axis by default, which can create degenerate wedge cells along the axis.
+This behavior can be disabled to reject inputs that touch the rotation axis.
+
+Both filters return explicit wedge cells by default.
+They can also use a compact :class:`viskores::cont::CellSetExtrude` representation, which can use less memory but requires downstream consumers that support that cell-set type.
+Generated wedge cells use a point ordering consistent with the direction of the sweep.
+
+.. doxygenclass:: viskores::filter::geometry_refinement::ExtrusionAbstract
+   :members:
+
+.. doxygenclass:: viskores::filter::geometry_refinement::ExtrusionLinear
+   :members:
+
+.. doxygenclass:: viskores::filter::geometry_refinement::ExtrusionRotational
    :members:
 
 Shrink
@@ -847,6 +882,77 @@ This surface simplification is an important operation to support :index:`level o
 .. load-example:: VertexClustering
    :file: GuideExampleProvidedFilters.cxx
    :caption: Using :class:`viskores::filter::geometry_refinement::VertexClustering`.
+
+
+Image Processing
+==============================
+
+.. index::
+   double: image processing; filter
+   double: filter; image processing
+
+The ``viskores::filter::image_processing`` module contains filters that operate on image-like data sets.
+These filters generally use point fields on structured data sets and provide neighborhood operations, image comparison metrics, and image moments.
+
+Compute Moments
+------------------------------
+
+.. index::
+   double: image moments; filter
+   double: moments; image
+
+The :class:`viskores::filter::image_processing::ComputeMoments` filter computes moments of a point field over a local neighborhood.
+The neighborhood is controlled by a radius and spacing, and the order controls which moment order is computed.
+
+.. doxygenclass:: viskores::filter::image_processing::ComputeMoments
+   :members:
+
+Image Difference
+------------------------------
+
+.. index::
+   double: image difference; filter
+   double: image comparison; filter
+
+The :class:`viskores::filter::image_processing::ImageDifference` filter compares two image fields.
+It subtracts the secondary field from the primary field and writes the per-pixel difference to the output field named ``image-diff`` by default.
+It also writes a threshold field named ``threshold-output`` by default that stores the magnitude of each pixel difference.
+The filter can optionally average each input image before comparison and can search over a pixel-shift radius to tolerate small spatial shifts.
+The :func:`viskores::filter::image_processing::ImageDifference::GetImageDiffWithinThreshold` method reports whether the number of pixels outside the configured threshold is within the allowed error ratio.
+
+.. doxygenclass:: viskores::filter::image_processing::ImageDifference
+   :members:
+
+Image Median
+------------------------------
+
+.. index::
+   double: image median; filter
+   double: median; image
+
+The :class:`viskores::filter::image_processing::ImageMedian` filter replaces each point-field value with the median value from its image neighborhood.
+The filter supports a 3 by 3 neighborhood with :func:`viskores::filter::image_processing::ImageMedian::Perform3x3` and a 5 by 5 neighborhood with :func:`viskores::filter::image_processing::ImageMedian::Perform5x5`.
+Neighborhoods are evaluated in the image plane, so volume data are treated as a stack of images along the z axis.
+The default output field name is ``median"``.
+
+.. doxygenclass:: viskores::filter::image_processing::ImageMedian
+   :members:
+
+Structural Similarity Index Measure
+----------------------------------------
+
+.. index::
+   double: SSIM; filter
+   double: structural similarity; filter
+   double: image comparison; structural similarity
+
+The :class:`viskores::filter::image_processing::SSIM` filter computes the Structural Similarity Index Measure (SSIM) between two image fields.
+It computes a local SSIM value at each point using a circular or spherical patch in structured image-index space, and the result is written to a point field named ``ssim`` by default.
+Scalar images are compared directly, and color or vector images are compared by flattening their components within each local patch.
+The :func:`viskores::filter::image_processing::SSIM::ComputeMetric` method computes the same pointwise SSIM field internally and returns its average as a single summary metric.
+
+.. doxygenclass:: viskores::filter::image_processing::SSIM
+   :members:
 
 
 Mesh Information

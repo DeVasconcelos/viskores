@@ -216,6 +216,7 @@ set(device_sources
   ConvertNumComponentsToOffsets.cxx
   Field.cxx
   internal/ArrayCopyUnknown.cxx
+  internal/ArrayGetMonotonicity.cxx
   internal/ArrayRangeComputeUtils.cxx
   internal/Buffer.cxx
   internal/MapArrayPermutation.cxx
@@ -314,11 +315,6 @@ viskores_library( NAME viskores_cont
               HEADERS ${headers}
               DEVICE_SOURCES ${device_sources}
             )
-
-target_sources(viskores_cont
-  PRIVATE
-    internal/Hints.h
-)
 
 add_subdirectory(internal)
 add_subdirectory(arg)
