@@ -18,6 +18,8 @@
 
 #include <viskores/rendering/CanvasRayTracer.h>
 
+#include <viskores/cont/Algorithm.h>
+#include <viskores/cont/ArrayHandleConstant.h>
 #include <viskores/cont/TryExecute.h>
 #include <viskores/rendering/Canvas.h>
 #include <viskores/rendering/Color.h>
@@ -45,9 +47,15 @@ public:
   {
   }
 
-  using ControlSignature =
-    void(FieldIn, WholeArrayInOut, FieldIn, FieldIn, FieldIn, WholeArrayInOut, WholeArrayInOut);
-  using ExecutionSignature = void(_1, _2, _3, _4, _5, _6, _7, WorkIndex);
+  using ControlSignature = void(FieldIn,
+                                WholeArrayInOut,
+                                FieldIn,
+                                FieldIn,
+                                FieldIn,
+                                WholeArrayInOut,
+                                WholeArrayInOut,
+                                WholeArrayInOut);
+  using ExecutionSignature = void(_1, _2, _3, _4, _5, _6, _7, _8, WorkIndex);
   template <typename Precision,
             typename ColorPortalType,
             typename DepthBufferPortalType,
@@ -58,10 +66,13 @@ public:
                                 const viskores::Vec<Precision, 3>& origin,
                                 const viskores::Vec<Precision, 3>& dir,
                                 DepthBufferPortalType& depthBuffer,
+                                DepthBufferPortalType& linearDepthBuffer,
                                 ColorBufferPortalType& colorBuffer,
                                 const viskores::Id& index) const
   {
     viskores::Float32 depth = viskores::NegativeInfinity32();
+    viskores::Float32 linearDepth = viskores::Infinity32();
+
     const bool hasProjectedDepth = (inDepth >= Precision{ 0 });
     if (hasProjectedDepth)
     {
@@ -90,6 +101,8 @@ public:
       }
     }
 
+    linearDepth = static_cast<viskores::Float32>(inDepth);
+
     viskores::Vec4f_32 color;
     color[0] = static_cast<viskores::Float32>(colorBufferIn.Get(index * 4 + 0));
     color[1] = static_cast<viskores::Float32>(colorBufferIn.Get(index * 4 + 1));
@@ -111,12 +124,16 @@ public:
     {
       color[i] = viskores::Min(1.f, viskores::Max(color[i], 0.f));
     }
+
     // The existing depth should already been feed into the ray mapper
     // so no color contribution will exist past the existing depth.
-
     if (this->WriteDepth && hasProjectedDepth && (depth <= currentDepth))
     {
       depthBuffer.Set(pixelIndex, depth);
+    }
+    if (hasProjectedDepth && (linearDepth <= linearDepthBuffer.Get(pixelIndex)))
+    {
+      linearDepthBuffer.Set(pixelIndex, linearDepth);
     }
     colorBuffer.Set(pixelIndex, color);
   }
@@ -140,11 +157,13 @@ VISKORES_CONT void WriteToCanvas(const viskores::rendering::raytracing::Ray<Prec
             rays.Origin,
             rays.Dir,
             canvas->GetDepthBuffer(),
+            canvas->GetLinearDepthBuffer(),
             canvas->GetColorBuffer());
 
   //Force the transfer so the vectors contain data from device
   canvas->GetColorBuffer().WritePortal().Get(0);
   canvas->GetDepthBuffer().WritePortal().Get(0);
+  canvas->GetLinearDepthBuffer().WritePortal().Get(0);
 }
 
 } // namespace internal
@@ -152,9 +171,24 @@ VISKORES_CONT void WriteToCanvas(const viskores::rendering::raytracing::Ray<Prec
 CanvasRayTracer::CanvasRayTracer(viskores::Id width, viskores::Id height)
   : Canvas(width, height)
 {
+  this->Clear();
 }
 
 CanvasRayTracer::~CanvasRayTracer() {}
+
+void CanvasRayTracer::Clear()
+{
+  this->Canvas::Clear();
+
+  const viskores::Id numPixels = this->GetWidth() * this->GetHeight();
+  if (this->LinearDepthBuffer.GetNumberOfValues() != numPixels)
+  {
+    this->LinearDepthBuffer.Allocate(numPixels);
+  }
+
+  viskores::cont::ArrayHandleConstant<viskores::Float32> inf(viskores::Infinity32(), numPixels);
+  viskores::cont::Algorithm::Copy(inf, this->LinearDepthBuffer);
+}
 
 void CanvasRayTracer::WriteToCanvas(
   const viskores::rendering::raytracing::Ray<viskores::Float32>& rays,
@@ -177,6 +211,16 @@ void CanvasRayTracer::WriteToCanvas(
 viskores::rendering::Canvas* CanvasRayTracer::NewCopy() const
 {
   return new viskores::rendering::CanvasRayTracer(*this);
+}
+
+const Canvas::DepthBufferType& CanvasRayTracer::GetLinearDepthBuffer() const
+{
+  return this->LinearDepthBuffer;
+}
+
+Canvas::DepthBufferType& CanvasRayTracer::GetLinearDepthBuffer()
+{
+  return this->LinearDepthBuffer;
 }
 }
 }
