@@ -13,14 +13,6 @@
 namespace viskores_device
 {
 
-namespace
-{
-viskores::Float32 imageRegionToViewport(viskores::Float32 value)
-{
-  return 2.f * value - 1.f;
-}
-}
-
 Orthographic::Orthographic(ViskoresDeviceGlobalState* s)
   : Camera(s)
 {
