@@ -346,6 +346,15 @@ public:
   VISKORES_CONT
   viskores::Float32 GetZoom() const { return this->Camera3D.Zoom; }
 
+  VISKORES_CONT
+  void SetAspectRatio(viskores::Float32 aspect)
+  {
+    this->SetModeTo3D();
+    this->Camera3D.AspectRatio = aspect;
+  }
+  VISKORES_CONT
+  viskores::Float32 GetAspectRatio() const { return this->Camera3D.AspectRatio; }
+
   /// @brief Moves the camera as if a point was dragged along a sphere.
   ///
   /// `TrackballRotate()` takes the normalized screen coordinates (in the range
@@ -539,6 +548,11 @@ public:
 
   viskores::rendering::raytracing::Camera CreateRaytracingCamera(viskores::Int32 width,
                                                                  viskores::Int32 height) const;
+
+  VISKORES_CONT
+  viskores::rendering::raytracing::Camera CreateRaytracingCamera(viskores::Int32 width,
+                                                                 viskores::Int32 height,
+                                                                 viskores::Float32 aspect) const;
 
 private:
   Mode ModeType;

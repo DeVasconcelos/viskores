@@ -13,6 +13,14 @@
 namespace viskores_device
 {
 
+namespace
+{
+viskores::Float32 imageRegionToViewport(viskores::Float32 value)
+{
+  return 2.f * value - 1.f;
+}
+}
+
 Perspective::Perspective(ViskoresDeviceGlobalState* s)
   : Camera(s)
 {
@@ -44,16 +52,14 @@ viskores::rendering::Camera Perspective::camera(const viskores::Bounds& bounds) 
   camera.SetLookAt(this->m_position + (length * this->m_direction));
   camera.SetViewUp(this->m_up);
   camera.SetFieldOfView(anari::degrees(this->m_fovy));
+  camera.SetAspectRatio(this->m_aspect);
   camera.SetClippingRange((this->m_near > 0) ? this->m_near : (0.01f * length),
                           (this->m_far > 0) ? this->m_far : (1000.f * length));
-#if 0
-  camera.SetViewport(this->m_imageRegion[0],
-                     this->m_imageRegion[2],
-                     this->m_imageRegion[1],
-                     this->m_imageRegion[3]);
-#endif
 
-  // TODO: The aspect parameter is ignored. This is handled elsewhere
+  camera.SetViewport(imageRegionToViewport(this->m_imageRegion[0]),
+                     imageRegionToViewport(this->m_imageRegion[2]),
+                     imageRegionToViewport(this->m_imageRegion[1]),
+                     imageRegionToViewport(this->m_imageRegion[3]));
 
   return camera;
 }

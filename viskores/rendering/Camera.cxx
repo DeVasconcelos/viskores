@@ -356,6 +356,13 @@ void Camera::Print() const
 viskores::rendering::raytracing::Camera Camera::CreateRaytracingCamera(viskores::Int32 width,
                                                                        viskores::Int32 height) const
 {
+  return this->CreateRaytracingCamera(width, height, this->GetAspectRatio());
+}
+
+viskores::rendering::raytracing::Camera Camera::CreateRaytracingCamera(viskores::Int32 width,
+                                                                       viskores::Int32 height,
+                                                                       viskores::Float32 aspect) const
+{
   viskores::rendering::raytracing::Camera rayCamera;
   rayCamera.SetUp(this->GetViewUp());
   rayCamera.SetLookAt(this->GetLookAt());
@@ -367,7 +374,9 @@ viskores::rendering::raytracing::Camera Camera::CreateRaytracingCamera(viskores:
   rayCamera.SetHeight(height);
   rayCamera.SetWidth(width);
   rayCamera.SetIsOrthogonalProjection(this->GetMode() == Mode::TwoD);
-  rayCamera.SetCamera3D(this->Camera3D);
+  auto camera3D = this->Camera3D;
+  camera3D.AspectRatio = (aspect > 0.f) ? aspect : (viskores::Float32(width) / viskores::Float32(height));
+  rayCamera.SetCamera3D(camera3D);
   rayCamera.SetCamera2D(this->Camera2D);
   viskores::Float32 left, right, bottom, top;
   this->GetRealViewport(width, height, left, right, bottom, top);
