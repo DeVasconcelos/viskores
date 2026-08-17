@@ -52,6 +52,8 @@ viskores::rendering::Camera Orthographic::camera(const viskores::Bounds& bounds)
                      imageRegionToViewport(this->m_imageRegion[1]),
                      imageRegionToViewport(this->m_imageRegion[3]));
 
+  // TODO: the aspect parameter is ignored for orthographic cameras
+
   return camera;
 }
 

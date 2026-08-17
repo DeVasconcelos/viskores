@@ -467,13 +467,13 @@ viskores::Matrix<viskores::Float32, 4, 4> Camera3DStruct::CreateProjectionMatrix
   viskores::Matrix<viskores::Float32, 4, 4> matrix;
   viskores::MatrixIdentity(matrix);
 
-  viskores::Float32 AspectRatio =
+  viskores::Float32 aspectRatio =
     (aspect > 0.f) ? aspect : (viskores::Float32(width) / viskores::Float32(height));
   viskores::Float32 fovRad = this->FieldOfView * viskores::Pi_180f();
   fovRad = viskores::Tan(fovRad * 0.5f);
   viskores::Float32 size = nearPlane * fovRad;
-  viskores::Float32 left = -size * AspectRatio;
-  viskores::Float32 right = size * AspectRatio;
+  viskores::Float32 left = -size * aspectRatio;
+  viskores::Float32 right = size * aspectRatio;
   viskores::Float32 bottom = -size;
   viskores::Float32 top = size;
 
@@ -1118,6 +1118,7 @@ void Camera::WriteSettingsToLog()
   logger->AddLogData("fov_y", this->Camera3D.FieldOfView);
   logger->AddLogData("width", Width);
   logger->AddLogData("height", Height);
+  logger->AddLogData("aspect_ratio", this->Camera3D.AspectRatio);
   logger->AddLogData("subset_height", SubsetHeight);
   logger->AddLogData("subset_width", SubsetWidth);
   logger->AddLogData("num_rays", SubsetWidth * SubsetHeight);
@@ -1139,6 +1140,7 @@ std::string Camera::ToString()
   sstream << this->Camera3D.ViewUp[2] << "]\n";
   sstream << "Width    : " << this->Width << "\n";
   sstream << "Height   : " << this->Height << "\n";
+  sstream << "Aspect   : " << this->Camera3D.AspectRatio << "\n";
   sstream << "------------------------------------------------------------\n";
   return sstream.str();
 }
