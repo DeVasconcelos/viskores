@@ -316,6 +316,7 @@ void Camera::Print() const
     std::cout << "  Clip  : " << GetClippingRange() << std::endl;
     std::cout << "  XyZ   : " << Camera3D.XPan << " " << Camera3D.YPan << " " << Camera3D.Zoom
               << std::endl;
+    std::cout << "  Aspect: " << Camera3D.AspectRatio << std::endl;
     viskores::Matrix<viskores::Float32, 4, 4> pm, vm;
     pm = CreateProjectionMatrix(512, 512);
     vm = CreateViewMatrix();
