@@ -251,6 +251,8 @@ public:
     top = this->ViewportTop;
   }
 
+  VISKORES_CONT bool HasFullViewport() const;
+
   VISKORES_CONT viskores::Matrix<viskores::Float32, 4, 4>& GetViewProjectionMatrix() const;
 
   VISKORES_CONT

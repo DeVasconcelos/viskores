@@ -31,22 +31,6 @@ namespace rendering
 namespace raytracing
 {
 
-namespace
-{
-VISKORES_EXEC_CONT inline bool approximatelyEqual(viskores::Float32 a, viskores::Float32 b)
-{
-  return fabs(a - b) < 1e-6f;
-}
-
-VISKORES_CONT inline bool isFullViewport(const Camera& camera)
-{
-  viskores::Float32 vl, vr, vb, vt;
-  camera.GetViewport(vl, vr, vb, vt);
-  return approximatelyEqual(vl, -1.f) && approximatelyEqual(vr, 1.f) &&
-    approximatelyEqual(vb, -1.f) && approximatelyEqual(vt, 1.f);
-}
-}
-
 class PixelData : public viskores::worklet::WorkletMapField
 {
 public:
@@ -700,6 +684,12 @@ viskores::Vec3f_32 Camera::GetPosition() const
   return this->Camera3D.Position;
 }
 
+VISKORES_CONT bool Camera::HasFullViewport() const
+{
+  return (this->ViewportLeft == -1.0f) && (this->ViewportRight == 1.0f) &&
+    (this->ViewportBottom == -1.0f) && (this->ViewportTop == 1.0f);
+}
+
 VISKORES_CONT viskores::Matrix<viskores::Float32, 4, 4>& Camera::GetViewProjectionMatrix() const
 {
   this->UpdateViewProjectionMatrix();
@@ -960,7 +950,7 @@ VISKORES_CONT void Camera::UpdateDimensions(Ray<Precision>& rays,
 
   //Find the pixel footprint
   bool usePixelFootprint =
-    imageSubsetModeOn && !this->IsOrthogonalProjection && isFullViewport(*this);
+    imageSubsetModeOn && !this->IsOrthogonalProjection && this->HasFullViewport();
 
   if (usePixelFootprint)
   {
