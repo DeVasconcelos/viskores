@@ -428,10 +428,10 @@ public:
 
     Precision x = Precision(i) / Precision(w);
     Precision y = Precision(j) / Precision(h);
-    Precision viewportX = Precision(ViewportLeft) +
-      (Precision(ViewportRight) - Precision(ViewportLeft)) * x;
-    Precision viewportY = Precision(ViewportBottom) +
-      (Precision(ViewportTop) - Precision(ViewportBottom)) * y;
+    Precision viewportX =
+      Precision(ViewportLeft) + (Precision(ViewportRight) - Precision(ViewportLeft)) * x;
+    Precision viewportY =
+      Precision(ViewportBottom) + (Precision(ViewportTop) - Precision(ViewportBottom)) * y;
 
     viskores::Vec<Precision, 3> ray_dir = nlook +
       delta_x * ((viewportX - Precision(panX)) * Precision(w) / 2.0f) +
@@ -467,7 +467,8 @@ viskores::Matrix<viskores::Float32, 4, 4> Camera3DStruct::CreateProjectionMatrix
   viskores::Matrix<viskores::Float32, 4, 4> matrix;
   viskores::MatrixIdentity(matrix);
 
-  viskores::Float32 AspectRatio = (aspect > 0.f) ? aspect : (viskores::Float32(width) / viskores::Float32(height));
+  viskores::Float32 AspectRatio =
+    (aspect > 0.f) ? aspect : (viskores::Float32(width) / viskores::Float32(height));
   viskores::Float32 fovRad = this->FieldOfView * viskores::Pi_180f();
   fovRad = viskores::Tan(fovRad * 0.5f);
   viskores::Float32 size = nearPlane * fovRad;
@@ -958,7 +959,8 @@ VISKORES_CONT void Camera::UpdateDimensions(Ray<Precision>& rays,
   bool imageSubsetModeOn = boundingBox.IsNonEmpty();
 
   //Find the pixel footprint
-  bool usePixelFootprint = imageSubsetModeOn && !this->IsOrthogonalProjection && isFullViewport(*this);
+  bool usePixelFootprint =
+    imageSubsetModeOn && !this->IsOrthogonalProjection && isFullViewport(*this);
 
   if (usePixelFootprint)
   {
@@ -1018,11 +1020,8 @@ void Camera::UpdateViewProjectionMatrix() const
   }
   else
   {
-    projection = this->Camera3D.CreateProjectionMatrix(this->Width,
-                                                       this->Height,
-                                                       this->NearPlane,
-                                                       this->FarPlane,
-                                                       this->Camera3D.AspectRatio);
+    projection = this->Camera3D.CreateProjectionMatrix(
+      this->Width, this->Height, this->NearPlane, this->FarPlane, this->Camera3D.AspectRatio);
     modelview = this->Camera3D.CreateViewMatrix();
   }
   this->ViewProjectionMat = viskores::MatrixMultiply(projection, modelview);
@@ -1058,9 +1057,10 @@ void Camera::CreateDebugRayImp(viskores::Vec2i_32 pixel, Ray<Precision>& rays)
 
 
   viskores::Float32 thy = tanf((this->Camera3D.FieldOfView * viskores::Pi_180f()) * .5f);
-  viskores::Float32 thx = (this->Camera3D.AspectRatio > 0.f) ? thy * this->Camera3D.AspectRatio
-                                                             : thy * (thy * this->Width) / this->Height;
-  
+  viskores::Float32 thx = (this->Camera3D.AspectRatio > 0.f)
+    ? thy * this->Camera3D.AspectRatio
+    : thy * (thy * this->Width) / this->Height;
+
   viskores::Vec3f_32 ru = viskores::Cross(this->LookDirection, this->Camera3D.ViewUp);
   viskores::Normalize(ru);
 
