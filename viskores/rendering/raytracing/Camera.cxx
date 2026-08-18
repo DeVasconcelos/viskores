@@ -410,16 +410,16 @@ public:
     // Write out the global pixelId
     pixelIndex = static_cast<viskores::Id>(j * w + i);
 
-    Precision x = Precision(i) / Precision(w);
-    Precision y = Precision(j) / Precision(h);
-    Precision viewportX =
-      Precision(ViewportLeft) + (Precision(ViewportRight) - Precision(ViewportLeft)) * x;
-    Precision viewportY =
-      Precision(ViewportBottom) + (Precision(ViewportTop) - Precision(ViewportBottom)) * y;
-
     viskores::Vec<Precision, 3> ray_dir = nlook +
-      delta_x * ((viewportX - Precision(panX)) * Precision(w) / 2.0f) +
-      delta_y * ((viewportY - Precision(panY)) * Precision(h) / 2.0f);
+      delta_x *
+        (((Precision(ViewportRight) - Precision(ViewportLeft)) * Precision(i) +
+          (Precision(ViewportLeft) - Precision(panX)) * Precision(w)) /
+         2.0f) +
+      delta_y *
+        (((Precision(ViewportTop) - Precision(ViewportBottom)) * Precision(j) +
+          (Precision(ViewportBottom) - Precision(panY)) * Precision(h)) /
+         2.0f);
+
     // avoid some numerical issues
     for (viskores::Int32 d = 0; d < 3; ++d)
     {
